@@ -17,7 +17,7 @@ namespace BlogApi.BussinssLogic
             
 
             if (string.IsNullOrWhiteSpace(_user.Username))
-                errors.Add("Username is required.");
+                errors.Add("A valid Username is required.");
 
             if (string.IsNullOrWhiteSpace(_user.Email) || !_user.Email.Contains("@"))
                 errors.Add("A valid email is required.");

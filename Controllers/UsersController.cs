@@ -1,12 +1,15 @@
 ﻿using BlogApi.BussinssLogic;
 using BlogApi.Data;
 using BlogApi.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Formats.Asn1;
+using System.Security.Claims;
 
 namespace BlogApi.Controllers
 {
-    [Route("api/Users")]
+    [Route("BlogApi")]
     [ApiController]
     public class UsersController : ControllerBase
     {
@@ -18,16 +21,64 @@ namespace BlogApi.Controllers
         }
 
 
-        [HttpPost("add")]
-        public async Task<ActionResult>AddUser(AddUserDto addUserDto)
+
+
+        [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
+        public async Task<ActionResult<string>>Login(LoginDto loginDto)
+        {
+
+            try
+            {
+               
+                if (loginDto == null)
+                {
+                    return BadRequest(new { message = "Invalid Data." });
+                }
+                var (auth, token) = await _userLogic.AuthenticateAsync(loginDto);
+
+                if (!auth)
+                {
+                    return Unauthorized(new { message = "invalid username/Email or password" });
+                }
+                else
+                {
+                    return Ok(new { token = token });
+                }
+            }
+            catch (Exception err)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred", details = err.StackTrace });
+
+            }
+
+
+
+        }
+
+
+
+
+
+
+        [HttpPost("Register")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult>Register(AddUserDto addUserDto)
         {
             try
             {
-                var(success,errors) =  await _userLogic.AddUser(addUserDto);
+           
+                var (success,errors) =  await _userLogic.AddUser(addUserDto);
 
                 if (!success)
                 {
-                    return BadRequest(errors);
+                    return BadRequest(new { errors });
 
                 }
                 return Ok(new { message = "User Created" });
@@ -37,22 +88,35 @@ namespace BlogApi.Controllers
 
             catch (Exception err)
             {
-                throw new Exception($"{err.Message}");
+                return StatusCode(500, new { error = "An unexpected error occurred", details = err.Message });
             }
-           
+
         }
 
 
-        [HttpPatch("{username}")]
-        public async Task<ActionResult>UpdateUser(string username,updateUserDto updateuserdto)
+
+
+        [Authorize]
+        [HttpPatch("User/update")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult>UpdateUser(updateUserDto updateuserdto)
         {
             try
             {
+                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+               
+                if (string.IsNullOrEmpty(username))
+                {
+                    return Unauthorized(new { error = "Invalid or missing authentication token." });
+                }
                 var (success, errors) = await _userLogic.UpdateUser(username,updateuserdto);
 
                 if (!success)
                 {
-                    return BadRequest(errors);
+                    return BadRequest(new { errors });
 
                 }
                 return Ok(new { message = "User updated" });
@@ -62,37 +126,57 @@ namespace BlogApi.Controllers
 
             catch (Exception err)
             {
-                throw new Exception($"{err.Message}");
+                return StatusCode(500, new { error = "An unexpected error occurred", details = err.Message });
             }
         }
 
+        [Authorize]
 
-        [HttpGet("{username}")]
-        public async Task<ActionResult<getUserDetailsDto>>GetUser(string username)
+        [HttpGet("User")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<getUserDetailsDto>>GetUser()
         {
             try
             {
+                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(username))
+                {
+                    return Unauthorized(new { error = "Invalid or missing authentication token." });
+                }
                 var user = await _userLogic.getUser(username);
                 if ( user== null)
                 {
                     return NotFound(new { message = $"user with username {username} does not exist" });
                 }
-                return Ok(user);
+                return Ok(new { user });
 
             }
             catch(Exception err)
             {
-                throw new Exception($"{err.Message}");
+                return StatusCode(500, new { error = "An unexpected error occurred", details = err.Message });
 
             }
         }
 
+        [Authorize]
 
-        [HttpDelete("{username}")]
-        public async Task<ActionResult>DeleteUser(string username)
+        [HttpDelete("User/delete")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult>DeleteUser()
         {
             try
             {
+                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(username))
+                {
+                    return Unauthorized(new { error = "Invalid or missing authentication token." });
+                }
                 var deleted = await _userLogic.deleteUser(username);
                 if (!deleted)
                 {
@@ -103,9 +187,11 @@ namespace BlogApi.Controllers
             }
             catch (Exception err)
             {
-                throw new Exception($"{err.Message}");
+                return StatusCode(500, new { error = "An unexpected error occurred", details = err.Message });
 
             }
         }
+
+
     }
 }

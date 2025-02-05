@@ -1,6 +1,7 @@
 ﻿using BlogApi.Data;
 using BlogApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace BlogApi.BussinssLogic
 {
@@ -13,16 +14,19 @@ namespace BlogApi.BussinssLogic
         public Task<getUserDetailsDto> getUser(string username);
 
         public Task<bool> deleteUser(string username);
+        public Task<(bool auth, string token)> AuthenticateAsync(LoginDto loginDto);
+
 
     }
 
 
     public  class UsersLogic:IUsersLogic
     {
-
+        private readonly IConfiguration _configration;
         private readonly AppDbContext _context;
-        public UsersLogic(AppDbContext context)
+        public UsersLogic(AppDbContext context  , IConfiguration configuration)
         {
+            _configration = configuration;
             _context = context;
         }
 
@@ -83,7 +87,7 @@ namespace BlogApi.BussinssLogic
             if (updateuserdto.username != null) {
                 
                 user.Username = updateuserdto.username;
-                _context.Entry(user).Property(u => u.Username).IsModified = true;
+                //_context.Entry(user).Property(u => u.Username).IsModified = true;
 
 
 
@@ -91,7 +95,7 @@ namespace BlogApi.BussinssLogic
             if (updateuserdto.email != null) { 
                 
                 user.Email = updateuserdto.email;
-                _context.Entry(user).Property(u => u.Email).IsModified = true;
+                //_context.Entry(user).Property(u => u.Email).IsModified = true;
 
 
             }
@@ -99,23 +103,23 @@ namespace BlogApi.BussinssLogic
                 
                 user.IsActive = updateuserdto.isActive;
 
-                _context.Entry(user).Property(u => u.IsActive).IsModified = true;
+                //_context.Entry(user).Property(u => u.IsActive).IsModified = true;
 
             }
             if (updateuserdto.password != null) {
                 
-                user.PasswordHash = HashPassword(updateuserdto.password);
-                _context.Entry(user).Property(u => u.PasswordHash).IsModified = true;
+                user.PasswordHash = updateuserdto.password;
+                //_context.Entry(user).Property(u => u.PasswordHash).IsModified = true;
 
             }
 
 
             UserValidation uservalidation = new UserValidation(user);
-            uservalidation.Validate();
             if (uservalidation.Validate().Count > 0)
             {
                 return (false, uservalidation.errors);
             }
+            user.PasswordHash = HashPassword(user.PasswordHash);
             await _context.SaveChangesAsync();
             return (true, new List<string>());
             
@@ -143,6 +147,25 @@ namespace BlogApi.BussinssLogic
             
         }
 
-        
+        public async Task<(bool auth,string token)> AuthenticateAsync(LoginDto loginDto)
+        {
+
+             var user = await _context.users
+            .FirstOrDefaultAsync(u => u.Username == loginDto.usernameOrEmail || u.Email == loginDto.usernameOrEmail);
+
+            if (user == null || !VerifyPassword(loginDto.password, user.PasswordHash))
+            {
+                return (false,""); // Authentication failed
+            }
+            user.LastLogin = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            TokenService tokengen = new TokenService(_configration);
+            return (true,tokengen.GenerateToken(user));
+        }
     }
-}
+
+
+
+
+    }
+
