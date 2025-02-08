@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlogApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250204220625_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250207210855_m1")]
+    partial class m1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -46,7 +46,7 @@ namespace BlogApi.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("createdAt")
@@ -57,6 +57,39 @@ namespace BlogApi.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("blogs");
+                });
+
+            modelBuilder.Entity("BlogApi.Models.Comments", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<int?>("BlogId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("BlogId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("comments");
                 });
 
             modelBuilder.Entity("BlogApi.Models.Users", b =>
@@ -106,15 +139,38 @@ namespace BlogApi.Migrations
                     b.HasOne("BlogApi.Models.Users", "Users")
                         .WithMany("Blogs")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("BlogApi.Models.Comments", b =>
+                {
+                    b.HasOne("BlogApi.Models.Blogs", "Blogs")
+                        .WithMany("Comments")
+                        .HasForeignKey("BlogId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("BlogApi.Models.Users", "Users")
+                        .WithMany("Comments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Blogs");
+
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("BlogApi.Models.Blogs", b =>
+                {
+                    b.Navigation("Comments");
                 });
 
             modelBuilder.Entity("BlogApi.Models.Users", b =>
                 {
                     b.Navigation("Blogs");
+
+                    b.Navigation("Comments");
                 });
 #pragma warning restore 612, 618
         }

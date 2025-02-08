@@ -26,7 +26,7 @@ namespace BlogApi.Data
         public string? password { get; set; }
 
        
-        public bool? isActive { get; set; }
+        public bool isActive { get; set; }
     }
 
 

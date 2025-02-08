@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace BlogApi.Models
 {
@@ -17,7 +18,7 @@ namespace BlogApi.Models
         [Required]
         public string PasswordHash { get; set; }  
 
-        public bool? IsActive { get; set; } = true;
+        public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -25,6 +26,7 @@ namespace BlogApi.Models
 
 
         public ICollection<Blogs> Blogs { get; set; }
+        public ICollection<Comments>Comments { get; set; }
 
 
     }
@@ -44,13 +46,33 @@ namespace BlogApi.Models
 
         public DateTime createdAt { get; set; } = DateTime.UtcNow;
 
-        public DateTime UpdatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
 
 
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
         public Users Users { get; set; }
 
+        public ICollection<Comments> Comments { get; set; }
 
+    }
+
+   public class Comments
+    {
+        [Key]
+        public int id { get; set; }
+        public string text { get; set; }
+
+        public DateTime createdAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime updatedAt { get; set; } = DateTime.UtcNow;
+
+        public int? BlogId { get; set; }
+        public Blogs Blogs { get; set; }
+
+        
+        public int? UserId { get; set; }
+
+        public Users Users { get; set; }
     }
 }

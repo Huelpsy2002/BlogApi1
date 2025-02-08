@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BlogApi.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -48,13 +48,49 @@ namespace BlogApi.Migrations
                         name: "FK_blogs_users_UserId",
                         column: x => x.UserId,
                         principalTable: "users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "comments",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    text = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    createdAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    updatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    BlogId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_comments", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_comments_blogs_BlogId",
+                        column: x => x.BlogId,
+                        principalTable: "blogs",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "FK_comments_users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "users",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_blogs_UserId",
                 table: "blogs",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_comments_BlogId",
+                table: "comments",
+                column: "BlogId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_comments_UserId",
+                table: "comments",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -73,6 +109,9 @@ namespace BlogApi.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "comments");
+
             migrationBuilder.DropTable(
                 name: "blogs");
 

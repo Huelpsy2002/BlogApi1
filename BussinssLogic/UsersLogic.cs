@@ -141,6 +141,8 @@ namespace BlogApi.BussinssLogic
             {
                 return false;
             }
+            _context.blogs.RemoveRange(user.Blogs);
+            _context.comments.RemoveRange(user.Comments);
             _context.users.Remove(user);
             await _context.SaveChangesAsync();
             return true;

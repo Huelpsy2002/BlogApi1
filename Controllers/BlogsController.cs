@@ -1,87 +1,73 @@
 ﻿using BlogApi.BussinssLogic;
 using BlogApi.Data;
-using BlogApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Formats.Asn1;
 using System.Security.Claims;
 
 namespace BlogApi.Controllers
 {
     [Route("BlogApi")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class BlogsController : ControllerBase
     {
-        private readonly IUsersLogic _userLogic;
-
-        public UsersController(IUsersLogic userLogic)
+        private readonly IBlogsLogic _blogLogic;
+        public BlogsController(IBlogsLogic blogLogic)
         {
-            _userLogic = userLogic;
+            _blogLogic = blogLogic;
         }
 
 
-
-
-        [HttpPost("login")]
+        [Authorize]
+        [HttpPost("Blogs")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-
-        public async Task<ActionResult<string>>Login(LoginDto loginDto)
+        public async Task<IActionResult> Blogs()
         {
-
             try
             {
+                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(username))
+                {
+                    return Unauthorized(new { error = "Invalid or missing authentication token." });
+                }
                
-                if (loginDto == null)
-                {
-                    return BadRequest(new { message = "Invalid Data." });
-                }
-                var (auth, token) = await _userLogic.AuthenticateAsync(loginDto);
+                return Ok(_blogLogic.GetAllBlogs(username));
 
-                if (!auth)
-                {
-                    return Unauthorized(new { message = "invalid username/Email or password" });
-                }
-                else
-                {
-                    return Ok(new { token = token });
-                }
             }
+
+
             catch (Exception err)
             {
-                return StatusCode(500, new { error = "An unexpected error occurred", details = err.StackTrace });
-
+                return StatusCode(500, new { error = "An unexpected error occurred", details = err.Message });
             }
-
-
 
         }
 
 
-
-
-
-
-        [HttpPost("Register")]
+        [Authorize]
+        [HttpPost("Blogs/Add")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult>Register(AddUserDto addUserDto)
+        public async Task<ActionResult> AddBlog(AddBlogDto addblogdto)
         {
             try
             {
-           
-                var (success,errors) =  await _userLogic.AddUser(addUserDto);
+                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(username))
+                {
+                    return Unauthorized(new { error = "Invalid or missing authentication token." });
+                }
+                var (success, errors) = await _blogLogic.AddBlog(addblogdto,username);
 
                 if (!success)
                 {
                     return BadRequest(new { errors });
 
                 }
-                return Ok(new { message = "User Created" });
+                return Ok(new { message = "blog Created" });
 
             }
 
@@ -95,31 +81,30 @@ namespace BlogApi.Controllers
 
 
 
-
         [Authorize]
-        [HttpPatch("User/update")]
+        [HttpPatch("blogs/update")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult>UpdateUser(updateUserDto updateuserdto)
+        public async Task<ActionResult> updateBlog(updateBlogDto updateBlogdto)
         {
             try
             {
                 var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-               
+
                 if (string.IsNullOrEmpty(username))
                 {
                     return Unauthorized(new { error = "Invalid or missing authentication token." });
                 }
-                var (success, errors) = await _userLogic.UpdateUser(username,updateuserdto);
+                var (success, errors) = await _blogLogic.UpdateBlog(updateBlogdto, username);
 
                 if (!success)
                 {
                     return BadRequest(new { errors });
 
                 }
-                return Ok(new { message = "User updated" });
+                return Ok(new { message = "blog updated" });
 
             }
 
@@ -132,12 +117,12 @@ namespace BlogApi.Controllers
 
         [Authorize]
 
-        [HttpGet("User")]
+        [HttpGet("blogs/getBlog/{blogId}")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<getUserDetailsDto>>GetUser()
+        public async Task<ActionResult<getUserDetailsDto>> GetBlog(int blogId)
         {
             try
             {
@@ -146,15 +131,15 @@ namespace BlogApi.Controllers
                 {
                     return Unauthorized(new { error = "Invalid or missing authentication token." });
                 }
-                var user = await _userLogic.getUser(username);
-                if ( user== null)
+                var blog = await _blogLogic.getBlog(username,blogId);
+                if (blog == null)
                 {
-                    return NotFound(new { message = $"user with username {username} does not exist" });
+                    return NotFound(new { message = $"blog with id {blogId} does not exist" });
                 }
-                return Ok(new { user });
+                return Ok(new { blog });
 
             }
-            catch(Exception err)
+            catch (Exception err)
             {
                 return StatusCode(500, new { error = "An unexpected error occurred", details = err.Message });
 
@@ -162,13 +147,12 @@ namespace BlogApi.Controllers
         }
 
         [Authorize]
-
-        [HttpDelete("User/delete")]
+        [HttpDelete("blogs/delete/{blogId}")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult>DeleteUser()
+        public async Task<ActionResult> DeleteBlog(int blogId)
         {
             try
             {
@@ -178,12 +162,12 @@ namespace BlogApi.Controllers
                     return Unauthorized(new { error = "Invalid or missing authentication token." });
                 }
 
-                var deleted = await _userLogic.deleteUser(username);
+                var deleted = await _blogLogic.deleteBlog(username,blogId);
                 if (!deleted)
                 {
-                    return NotFound(new { message = $"user with username {username} does not exist" });
+                    return NotFound(new { message = $"blog with id {blogId } does not exist" });
                 }
-                return Ok(new {message = "user deleted."});
+                return Ok(new { message = "blog deleted." });
 
             }
             catch (Exception err)
@@ -192,7 +176,6 @@ namespace BlogApi.Controllers
 
             }
         }
-
 
     }
 }
