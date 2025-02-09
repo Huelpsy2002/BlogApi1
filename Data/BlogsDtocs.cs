@@ -9,7 +9,6 @@
     }
     public class updateBlogDto
     {
-        public int blogId { get; set; }
         public string title { get; set; }
         public string description { get; set; }
 

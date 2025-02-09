@@ -18,6 +18,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IUsersLogic, UsersLogic>();
 builder.Services.AddScoped<IBlogsLogic, BlogsLogic>();
+builder.Services.AddScoped<ICommentsLogic,CommentsLogic>();
 
 
 

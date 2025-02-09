@@ -19,7 +19,7 @@ namespace BlogApi.Controllers
 
 
         [Authorize]
-        [HttpPost("Blogs")]
+        [HttpGet("blogs")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -47,7 +47,7 @@ namespace BlogApi.Controllers
 
 
         [Authorize]
-        [HttpPost("Blogs/Add")]
+        [HttpPost("blogs/blog/Add")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -82,12 +82,12 @@ namespace BlogApi.Controllers
 
 
         [Authorize]
-        [HttpPatch("blogs/update")]
+        [HttpPatch("blogs/blog/{blogId}/update")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult> updateBlog(updateBlogDto updateBlogdto)
+        public async Task<ActionResult> updateBlog(updateBlogDto updateBlogdto,int blogId)
         {
             try
             {
@@ -97,7 +97,7 @@ namespace BlogApi.Controllers
                 {
                     return Unauthorized(new { error = "Invalid or missing authentication token." });
                 }
-                var (success, errors) = await _blogLogic.UpdateBlog(updateBlogdto, username);
+                var (success, errors) = await _blogLogic.UpdateBlog(updateBlogdto, username,blogId);
 
                 if (!success)
                 {
@@ -117,7 +117,7 @@ namespace BlogApi.Controllers
 
         [Authorize]
 
-        [HttpGet("blogs/getBlog/{blogId}")]
+        [HttpGet("blogs/blog/{blogId}")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -147,7 +147,7 @@ namespace BlogApi.Controllers
         }
 
         [Authorize]
-        [HttpDelete("blogs/delete/{blogId}")]
+        [HttpDelete("blogs/blog/{blogId}/delete")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]

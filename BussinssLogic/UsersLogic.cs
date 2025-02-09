@@ -2,6 +2,7 @@
 using BlogApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BlogApi.BussinssLogic
 {
@@ -48,7 +49,7 @@ namespace BlogApi.BussinssLogic
 
         public   async Task<(bool success,List<string>Errors)> AddUser(AddUserDto adduserdto) {
 
-            Users user = new Users { Username = adduserdto.username, PasswordHash = adduserdto.password, Email = adduserdto.email };
+            Users user = new Users { Username = adduserdto.username, Email = adduserdto.email };
             UserValidation uservalidation = new UserValidation(user);
 
 
@@ -63,12 +64,12 @@ namespace BlogApi.BussinssLogic
             {
                 uservalidation.errors.Add("email already exist.");
             }
-            
+            user.PasswordHash = HashPassword(adduserdto.password);
+
             if (uservalidation.Validate().Count > 0)
             {
                 return (false, uservalidation.errors);  
             }
-            user.PasswordHash = HashPassword(user.PasswordHash);
             await  _context.AddAsync(user);
             await _context.SaveChangesAsync();
             return (true, new List<string>());
@@ -99,27 +100,39 @@ namespace BlogApi.BussinssLogic
 
 
             }
-            if (updateuserdto.isActive != null) { 
-                
-                user.IsActive = updateuserdto.isActive;
+            if (updateuserdto.isActive != null) {
+
+                if (updateuserdto.isActive==true) { user.IsActive = true; }
+                else { user.IsActive = false; }
 
                 //_context.Entry(user).Property(u => u.IsActive).IsModified = true;
 
             }
-            if (updateuserdto.password != null) {
-                
-                user.PasswordHash = updateuserdto.password;
-                //_context.Entry(user).Property(u => u.PasswordHash).IsModified = true;
 
-            }
-
+            
 
             UserValidation uservalidation = new UserValidation(user);
+            
+
+            if (!string.IsNullOrEmpty(updateuserdto.password))
+            {
+                if (!VerifyPassword(updateuserdto.password, user.PasswordHash))
+                {
+                    if ( updateuserdto.password.Length < 8)
+                    {
+                        uservalidation.errors.Add("Password must be at least 8 characters long.");
+                        return (false, uservalidation.errors);
+
+                    }
+                    user.PasswordHash = HashPassword(updateuserdto.password);
+                }
+            }
+
             if (uservalidation.Validate().Count > 0)
             {
                 return (false, uservalidation.errors);
             }
-            user.PasswordHash = HashPassword(user.PasswordHash);
+
             await _context.SaveChangesAsync();
             return (true, new List<string>());
             
@@ -136,13 +149,14 @@ namespace BlogApi.BussinssLogic
 
         public async Task<bool> deleteUser(string username)
         {
-            var user = await _context.users.FirstOrDefaultAsync(u => u.Username == username);
+            var user = await _context.users.Include(u=>u.Blogs).Include(u=>u.Comments).
+                FirstOrDefaultAsync(u => u.Username == username);
             if (user == null)
             {
                 return false;
             }
-            _context.blogs.RemoveRange(user.Blogs);
-            _context.comments.RemoveRange(user.Comments);
+            if (user.Blogs != null && user.Blogs.Any()) { _context.blogs.RemoveRange(user.Blogs); }
+            if (user.Comments != null && user.Comments.Any()) { _context.comments.RemoveRange(user.Comments); }
             _context.users.Remove(user);
             await _context.SaveChangesAsync();
             return true;
@@ -157,6 +171,7 @@ namespace BlogApi.BussinssLogic
 
             if (user == null || !VerifyPassword(loginDto.password, user.PasswordHash))
             {
+                
                 return (false,""); // Authentication failed
             }
             user.LastLogin = DateTime.UtcNow;
