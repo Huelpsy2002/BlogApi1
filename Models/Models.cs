@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection.Metadata;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace BlogApi.Models
 {
@@ -23,6 +25,8 @@ namespace BlogApi.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? LastLogin { get; set; }
+
+        public string Role { get; set; } = "User";
 
 
         public ICollection<Blogs> Blogs { get; set; }
@@ -54,10 +58,12 @@ namespace BlogApi.Models
         public Users Users { get; set; }
 
         public ICollection<Comments> Comments { get; set; }
+        public ICollection<BlogsCategories> BlogCategories { get; set; } = new List<BlogsCategories>();
+
 
     }
 
-   public class Comments
+    public class Comments
     {
         [Key]
         public int id { get; set; }
@@ -74,5 +80,38 @@ namespace BlogApi.Models
         public int? UserId { get; set; }
 
         public Users Users { get; set; }
+    }
+
+
+    public class Categories
+    {
+        [Key]
+        public int id { get; set; }
+        public string Name { get; set; }
+
+        public ICollection<Tags> tags { get; set; } = new List<Tags>();
+        public ICollection<BlogsCategories> BlogCategories { get; set; } = new List<BlogsCategories>();
+
+    }
+
+
+    public class BlogsCategories
+    {
+        public int? BlogId { get; set; }
+        public Blogs Blogs { get; set; }
+
+        public int? CategoryId { get; set; }
+        public Categories Categories { get; set; }
+    }
+
+
+    public class Tags
+    {
+        [Key]
+        public int id { get; set; }
+        public string Name { get; set; }
+        public int? CategoryId { get; set; }
+        public Categories Categories { get; set; }
+
     }
 }

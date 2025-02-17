@@ -49,7 +49,7 @@ namespace BlogApi.BussinssLogic
 
         public   async Task<(bool success,List<string>Errors)> AddUser(AddUserDto adduserdto) {
 
-            Users user = new Users { Username = adduserdto.username, Email = adduserdto.email };
+            Users user = new Users { Username = adduserdto.username,PasswordHash = adduserdto.password, Email = adduserdto.email };
             UserValidation uservalidation = new UserValidation(user);
 
 
@@ -64,13 +64,14 @@ namespace BlogApi.BussinssLogic
             {
                 uservalidation.errors.Add("email already exist.");
             }
-            user.PasswordHash = HashPassword(adduserdto.password);
 
             if (uservalidation.Validate().Count > 0)
             {
                 return (false, uservalidation.errors);  
             }
-            await  _context.AddAsync(user);
+            user.PasswordHash = HashPassword(adduserdto.password);
+
+            await _context.AddAsync(user);
             await _context.SaveChangesAsync();
             return (true, new List<string>());
 
@@ -155,7 +156,19 @@ namespace BlogApi.BussinssLogic
             {
                 return false;
             }
-            if (user.Blogs != null && user.Blogs.Any()) { _context.blogs.RemoveRange(user.Blogs); }
+            var blogCategories = await _context.blogsCategories
+                .Join(_context.blogs,
+                      bc => bc.BlogId,
+                      b => b.id,
+                      (bc, b) => new { bc, b })
+                .Where(joined => joined.b.Users.Username==username)
+                .Select(joined => joined.bc) // Select BlogCategories
+                .ToListAsync();
+
+            if (user.Blogs != null && user.Blogs.Any()) {
+                _context.blogsCategories.RemoveRange(blogCategories);
+                _context.blogs.RemoveRange(user.Blogs);
+            }
             if (user.Comments != null && user.Comments.Any()) { _context.comments.RemoveRange(user.Comments); }
             _context.users.Remove(user);
             await _context.SaveChangesAsync();

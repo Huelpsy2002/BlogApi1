@@ -1,10 +1,23 @@
 ﻿namespace BlogApi.Data
 {
+
+
+    public class CommentDto
+    {
+        public string Username { get; set; }
+        public string CommentText { get; set; }
+        public DateTime CommentedAt { get; set; }
+    }
+
+
+
     public class AddCommentsDto
     {
         public string text { get; set; }
 
     }
+
+
 
     public class updateCommentsDto
     {

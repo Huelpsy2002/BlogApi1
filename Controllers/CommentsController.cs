@@ -35,7 +35,7 @@ namespace BlogApi.Controllers
                     return Unauthorized(new { error = "Invalid or missing authentication token." });
                 }
 
-                return Ok(_CommentLogic.GetAllComments(blogId));
+                return Ok(await _CommentLogic.GetAllComments(blogId));
 
             }
 

@@ -23,7 +23,7 @@ namespace BlogApi.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> Blogs()
+        public async Task<IActionResult> Blogs([FromQuery] string? category)
         {
             try
             {
@@ -32,8 +32,8 @@ namespace BlogApi.Controllers
                 {
                     return Unauthorized(new { error = "Invalid or missing authentication token." });
                 }
-               
-                return Ok(_blogLogic.GetAllBlogs(username));
+                var blogs = await _blogLogic.GetAllBlogs(category);
+                return Ok(new {blogs=blogs});
 
             }
 

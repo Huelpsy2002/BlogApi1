@@ -78,7 +78,7 @@ namespace BlogApi.Controllers
 
                 if (!success)
                 {
-                    return BadRequest(new { errors });
+                    return BadRequest(new { errors=errors });
 
                 }
                 return Ok(new { message = "User Created" });

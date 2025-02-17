@@ -21,41 +21,12 @@ builder.Services.AddScoped<IBlogsLogic, BlogsLogic>();
 builder.Services.AddScoped<ICommentsLogic,CommentsLogic>();
 
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+});
 
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//        .AddJwtBearer(options =>
-//        {
-//            options.RequireHttpsMetadata = false;
-//            options.Audience = builder.Configuration["Jwt:Audience"];
-//            options.Authority = "https://localhost:7255";
-//            options.TokenValidationParameters = new TokenValidationParameters
-//            {
-//                ValidateIssuer = true,
-
-//                ValidateAudience = true,
-//                ValidateLifetime = true,
-//                ValidateIssuerSigningKey = true,
-//                ValidIssuer = builder.Configuration["Jwt:Issuer"],
-//                ValidAudience = builder.Configuration["Jwt:Audience"],
-//                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-//            };
-//            options.Events = new JwtBearerEvents
-//            {
-//                OnTokenValidated = context =>
-//                {
-//                    var identity = (ClaimsIdentity)context.Principal.Identity;
-//                    var nameIdentifierClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
-
-//                    // Add "sub" claim manually
-//                    if (nameIdentifierClaim != null)
-//                    {
-//                        identity.AddClaim(new Claim("sub", nameIdentifierClaim.Value));
-//                    }
-
-//                    return Task.CompletedTask;
-//                }
-//            };
-//        });
 
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -83,6 +54,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseCors("AllowAll"); // Enable CORS for all origins
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
