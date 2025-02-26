@@ -47,7 +47,7 @@ namespace BlogApi.Controllers
 
 
         [Authorize]
-        [HttpPost("blogs/blog/Add")]
+        [HttpPost("blog/Add")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -82,7 +82,7 @@ namespace BlogApi.Controllers
 
 
         [Authorize]
-        [HttpPatch("blogs/blog/{blogId}/update")]
+        [HttpPatch("blog/{blogId}/update")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -117,7 +117,7 @@ namespace BlogApi.Controllers
 
         [Authorize]
 
-        [HttpGet("blogs/blog/{blogId}")]
+        [HttpGet("blog/{blogId}")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -147,7 +147,7 @@ namespace BlogApi.Controllers
         }
 
         [Authorize]
-        [HttpDelete("blogs/blog/{blogId}/delete")]
+        [HttpDelete("blog/{blogId}/delete")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]

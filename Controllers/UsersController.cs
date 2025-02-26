@@ -23,7 +23,7 @@ namespace BlogApi.Controllers
 
 
 
-        [HttpPost("users/login")]
+        [HttpPost("user/login")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -65,7 +65,7 @@ namespace BlogApi.Controllers
 
 
 
-        [HttpPost("users/register")]
+        [HttpPost("user/register")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -97,7 +97,7 @@ namespace BlogApi.Controllers
 
 
         [Authorize]
-        [HttpPatch("users/user/update")]
+        [HttpPatch("user/update")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -132,7 +132,7 @@ namespace BlogApi.Controllers
 
         [Authorize]
 
-        [HttpGet("users/user")]
+        [HttpGet("user")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -163,7 +163,7 @@ namespace BlogApi.Controllers
 
         [Authorize]
 
-        [HttpDelete("users/user/delete")]
+        [HttpDelete("user/delete")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status200OK)]
